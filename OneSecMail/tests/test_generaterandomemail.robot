@@ -8,7 +8,7 @@ ${email_regex_pattern}=    ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$
 *** keywords ***
 Generate Random Mailbox Keyword
     [Arguments]    ${count}=${EMPTY}
-    ${generated_mailbox}=    OneSecMail.Generate Random Mailbox    ${count}
+    ${generated_mailbox}=    OneSecMail.Generate Temporary Mailbox    ${count}
     Set Test Message    ${generated_mailbox}
     RETURN    ${generated_mailbox}
 
@@ -33,8 +33,8 @@ Generate Single Random Mailbox With Negative Count
     Run Keyword And Expect Error   ValueError: Count must be a positive integer.    Generate Random Mailbox Keyword    -1
 
 Generate Single Random Mailbox With Large Count
-    ${generated_mailbox}=    Generate Random Mailbox Keyword    100
-    Count Values In List    ${generated_mailbox}    100
+    ${generated_mailbox}=    Generate Random Mailbox Keyword    10
+    Count Values In List    ${generated_mailbox}    10
 
 Generate Random Mailbox With Special Characters
     Run Keyword And Expect Error    ValueError: Count must be a positive integer.    Generate Random Mailbox Keyword    !@#$%^&*

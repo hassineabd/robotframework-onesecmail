@@ -5,7 +5,6 @@ __version__ = 0.1
 
 class OneSecMail(
     _LoggingKeywords,
-    _LanguageDetector,
     _OneSecMailKeywords
 ):
     """OneSecMail Library for Robot Framework

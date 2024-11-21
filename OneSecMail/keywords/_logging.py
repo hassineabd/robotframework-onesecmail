@@ -33,16 +33,6 @@ class _LoggingKeywords(KeywordGroup):
         if self._log_level in self.LOG_LEVEL_WARN:
             logger.warn(message)
 
-    def _html(self, message):
-        logger.info(message, True, False)
-
-    def _get_log_dir(self):
-        variables = BuiltIn().get_variables()
-        logfile = variables['${LOG FILE}']
-        if logfile != 'NONE':
-            return os.path.dirname(logfile)
-        return variables['${OUTPUTDIR}']
-
     def _log(self, message, level='INFO'):
         level = level.upper()
         if (level == 'INFO'):
