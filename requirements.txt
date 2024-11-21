@@ -1,0 +1,11 @@
+certifi==2024.8.30
+charset-normalizer==3.4.0
+decorator==5.1.1
+idna==3.10
+langdetect==1.0.9
+-e git+ssh://git@github.com/hassineabd/robotframework-onesecmail.git@df9f3515af4127fcd133ec8dad6ab702adc4b9b5#egg=OneSecMail
+requests==2.32.3
+robotframework==7.1.1
+setuptools==75.5.0
+six==1.16.0
+urllib3==2.2.3

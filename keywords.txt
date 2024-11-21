@@ -1,0 +1,324 @@
+1. Generate Random Email Address
+Description: Generates a random email address using the genRandomMailbox API endpoint.
+Implementation:
+Generate Random Email Address
+    [Arguments]    ${count}=1
+    ${response}=    Get Request    https://www.1secmail.com/api/v1/?action=genRandomMailbox&count=${count}
+    ${emails}=    Evaluate    json.loads('''${response.content}''')
+    [Return]    ${emails}
+
+
+2. Get List of Active Domains
+Description: Retrieves the current list of active domains using the getDomainList endpoint.
+Implementation:
+
+
+Get Active Domains
+    ${response}=    Get Request    https://www.1secmail.com/api/v1/?action=getDomainList
+    ${domains}=    Evaluate    json.loads('''${response.content}''')
+    [Return]    ${domains}
+
+
+3. Create Custom Email Address
+Description: Creates a custom email address using a specified username and one of the active domains.
+Implementation:
+
+
+Create Custom Email Address
+    [Arguments]    ${username}
+    ${domains}=    Get Active Domains
+    ${domain}=    Set Variable    ${domains[0]}
+    ${email}=    Set Variable    ${username}@${domain}
+    [Return]    ${email}
+
+
+4. Check Mailbox for Emails
+Description: Checks the mailbox for incoming emails for a given login and domain.
+Implementation:
+
+Check Mailbox
+    [Arguments]    ${login}    ${domain}
+    ${url}=    Set Variable    https://www.1secmail.com/api/v1/?action=getMessages&login=${login}&domain=${domain}
+    ${response}=    Get Request    ${url}
+    ${emails}=    Evaluate    json.loads('''${response.content}''')
+    [Return]    ${emails}
+
+5. Wait for Email to Arrive
+Description: Waits for an email to arrive in the mailbox within a specified timeout.
+Implementation:
+
+
+Wait For Email
+    [Arguments]    ${login}    ${domain}    ${timeout}=60    ${poll_interval}=5
+    ${end_time}=    Evaluate    time.time() + ${timeout}
+    :FOR    ${i}    IN RANGE    0    ${timeout}    ${poll_interval}
+        ${emails}=    Check Mailbox    ${login}    ${domain}
+        Exit For Loop If    ${emails}
+        Sleep    ${poll_interval}
+        Run Keyword If    time.time() > ${end_time}    Fail    Email did not arrive within ${timeout} seconds
+    [Return]    ${emails}
+
+6. Read Email by ID
+Description: Fetches the details of a single email message using its ID.
+Implementation:
+
+
+Read Email By ID
+    [Arguments]    ${login}    ${domain}    ${email_id}
+    ${url}=    Set Variable    https://www.1secmail.com/api/v1/?action=readMessage&login=${login}&domain=${domain}&id=${email_id}
+    ${response}=    Get Request    ${url}
+    ${email}=    Evaluate    json.loads('''${response.content}''')
+    [Return]    ${email}
+
+7. Get Email Content by Subject
+Description: Retrieves the email that matches a specific subject.
+Implementation:
+
+
+Get Email By Subject
+    [Arguments]    ${login}    ${domain}    ${subject}
+    ${emails}=    Check Mailbox    ${login}    ${domain}
+    :FOR    ${email}    IN    @{emails}
+        Run Keyword If    '${email.subject}' == '${subject}'    Return From Keyword    ${email}
+    Fail    No email found with subject: ${subject}
+
+8. Download Email Attachment
+Description: Downloads an attachment from an email message.
+Implementation:
+
+
+Download Email Attachment
+    [Arguments]    ${login}    ${domain}    ${email_id}    ${filename}    ${save_path}
+    ${url}=    Set Variable    https://www.1secmail.com/api/v1/?action=download&login=${login}&domain=${domain}&id=${email_id}&file=${filename}
+    ${response}=    Get Request    ${url}
+    Create File    ${save_path}/${filename}    ${response.content}    encoding=None
+
+9. Verify Email Received from Sender
+Description: Checks if an email has been received from a specific sender.
+Implementation:
+Verify Email From Sender
+    [Arguments]    ${login}    ${domain}    ${sender_email}
+    ${emails}=    Check Mailbox    ${login}    ${domain}
+    ${found}=    Set Variable    False
+    :FOR    ${email}    IN    @{emails}
+        Run Keyword If    '${email.from}' == '${sender_email}'    ${found}=Set Variable    True
+    Run Keyword Unless    ${found}    Fail    No email received from ${sender_email}
+
+10. Extract Verification Link from Email
+Description: Parses the email body to extract a verification link.
+Implementation:
+Extract Verification Link
+    [Arguments]    ${email_body}
+    ${regex}=    Set Variable    (https?://[^\s]+)
+    ${match}=    Get Regexp Matches    ${email_body}    ${regex}
+    [Return]    ${match[0]}
+
+11. Wait for Email with Specific Subject
+Description: Waits until an email with a specific subject arrives.
+Implementation:
+Wait For Email With Subject
+    [Arguments]    ${login}    ${domain}    ${subject}    ${timeout}=60    ${poll_interval}=5
+    ${end_time}=    Evaluate    time.time() + ${timeout}
+    :FOR    ${i}    IN RANGE    0    ${timeout}    ${poll_interval}
+        ${emails}=    Check Mailbox    ${login}    ${domain}
+        :FOR    ${email}    IN    @{emails}
+            Run Keyword If    '${email.subject}' == '${subject}'    Return From Keyword    ${email}
+        Sleep    ${poll_interval}
+        Run Keyword If    time.time() > ${end_time}    Fail    Email with subject "${subject}" did not arrive within ${timeout} seconds
+
+
+12. Delete All Emails (If Supported)
+Description: Deletes all emails from the mailbox (Note: The API documentation does not mention a delete endpoint; this is speculative).
+Implementation:
+
+Delete All Emails
+    [Arguments]    ${login}    ${domain}
+    ${emails}=    Check Mailbox    ${login}    ${domain}
+    :FOR    ${email}    IN    @{emails}
+        ${url}=    Set Variable    https://www.1secmail.com/api/v1/?action=deleteMessage&login=${login}&domain=${domain}&id=${email.id}
+        Get Request    ${url}
+
+13. Get Email IDs
+Description: Retrieves the list of email IDs from the mailbox.
+Implementation:
+
+Get Email IDs
+    [Arguments]    ${login}    ${domain}
+    ${emails}=    Check Mailbox    ${login}    ${domain}
+    ${ids}=    Create List
+    :FOR    ${email}    IN    @{emails}
+        Append To List    ${ids}    ${email.id}
+    [Return]    ${ids}
+
+14. Verify No Emails in Mailbox
+Description: Asserts that the mailbox is empty.
+Implementation:
+Verify Mailbox Is Empty
+    [Arguments]    ${login}    ${domain}
+    ${emails}=    Check Mailbox    ${login}    ${domain}
+    Should Be Empty    ${emails}
+
+15. Send Test Email (If SMTP Is Available)
+Description: Sends a test email to the temporary address (Note: The API does not support sending emails; this requires an external SMTP server).
+Implementation:
+Send Test Email
+    [Arguments]    ${to_email}    ${subject}    ${body}
+    # Implementation depends on an SMTP library or external service
+
+
+
+
+
+16. Verify Email Contains Text
+Description: Asserts that the email body contains specific text.
+Implementation:
+def verify_email_contains_text(login, domain, email_id, expected_text):
+    email = read_email_by_id(login, domain, email_id)
+    if expected_text not in email['body']:
+        raise AssertionError(f'Text "{expected_text}" not found in email body.')
+
+
+17. Verify Email Body Matches Pattern
+Description: Checks if the email body matches a specific regular expression pattern.
+Implementation:
+def verify_email_body_matches_pattern(login, domain, email_id, pattern):
+    import re
+    email = read_email_by_id(login, domain, email_id)
+    if not re.search(pattern, email['body']):
+        raise AssertionError(f'Pattern "{pattern}" not found in email body.')
+18. Save All Attachments
+Description: Downloads all attachments from an email message.
+Implementation:
+
+
+def save_all_attachments(login, domain, email_id, save_path):
+    email = read_email_by_id(login, domain, email_id)
+    for attachment in email.get('attachments', []):
+        filename = attachment['filename']
+        download_email_attachment(login, domain, email_id, filename, save_path)
+
+
+19. Handle Multiple Emails
+Description: Processes all emails in the mailbox with a given action (e.g., print subjects, delete).
+Implementation:
+
+
+def process_all_emails(login, domain, action):
+    emails = check_mailbox(login, domain)
+    for email in emails:
+        action(email)
+
+
+20. Parse Email Headers
+Description: Retrieves and parses the headers of an email message.
+Implementation:
+
+
+def get_email_headers(login, domain, email_id):
+    email = read_email_by_id(login, domain, email_id)
+    # Assuming headers are part of the API response (not specified in documentation)
+    return email.get('headers', {})
+
+
+21. Handle Different Email Formats (HTML/Text)
+Description: Determines whether to process the email as HTML or plain text.
+Implementation:
+
+
+def get_email_content(login, domain, email_id, content_type='text'):
+    email = read_email_by_id(login, domain, email_id)
+    if content_type == 'html':
+        return email.get('htmlBody', '')
+    else:
+        return email.get('textBody', '')
+
+22. Implement Email Deletion (If Supported)
+Description: Deletes a specific email from the mailbox.
+Implementation:
+
+
+def delete_email(login, domain, email_id):
+    url = f'https://www.1secmail.com/api/v1/?action=deleteMessage&login={login}&domain={domain}&id={email_id}'
+    response = requests.get(url)
+    if response.status_code != 200:
+        raise Exception('Failed to delete email')
+
+
+23. Verify No New Emails Arrive After Time
+Description: Checks that no new emails have arrived in the mailbox after a specified duration.
+Implementation:
+def verify_no_new_emails(login, domain, initial_email_count, duration=60):
+    import time
+    time.sleep(duration)
+    emails = check_mailbox(login, domain)
+    if len(emails) > initial_email_count:
+        raise AssertionError('New emails have arrived in the mailbox.')
+
+
+24. Fetch All Email Subjects
+Description: Retrieves the subjects of all emails in the mailbox.
+Implementation:
+def get_all_email_subjects(login, domain):
+    emails = check_mailbox(login, domain)
+    return [email['subject'] for email in emails]
+
+
+25. Fetch All Email Senders
+Description: Retrieves the senders of all emails in the mailbox.
+Implementation:
+
+def get_all_email_senders(login, domain):
+    emails = check_mailbox(login, domain)
+    return [email['from'] for email in emails]
+
+
+26. Extract Links from Email
+Description: Extracts all hyperlinks from an email body.
+Implementation:
+def extract_links_from_email(login, domain, email_id):
+    import re
+    email = read_email_by_id(login, domain, email_id)
+    body = email.get('body', '')
+    links = re.findall(r'(https?://\S+)', body)
+    return links
+
+
+27. Wait for Specific Email Content
+Description: Waits until an email containing specific text arrives.
+Implementation:
+def wait_for_email_with_text(login, domain, expected_text, timeout=60, poll_interval=5):
+    import time
+    end_time = time.time() + timeout
+    while time.time() < end_time:
+        emails = check_mailbox(login, domain)
+        for email in emails:
+            email_details = read_email_by_id(login, domain, email['id'])
+            if expected_text in email_details['body']:
+                return email_details
+        time.sleep(poll_interval)
+    raise TimeoutError('Email with the expected text did not arrive within the timeout period.')
+
+
+28. Forward Email (If Supported)
+Description: Forwards an email to another address (Note: This depends on API support).
+Implementation:
+def forward_email(login, domain, email_id, forward_to_email):
+    # Since the API doesn't support sending emails, this would require SMTP implementation.
+    pass
+
+29. Get Email Received Time
+Description: Retrieves the timestamp when the email was received.
+Implementation:
+def get_email_received_time(login, domain, email_id):
+    email = read_email_by_id(login, domain, email_id)
+    return email['date']
+
+
+30. Wait Until No Emails in Mailbox
+
+
+
+Handling API Limitations:
+Email Deletion: Since the API documentation does not mention email deletion, assume that emails are temporary and will be deleted by the service automatically after some time.
+Sending Emails: The API does not support sending emails. For testing purposes, you may need to use an SMTP server or a service like SendGrid or Mailgun to send emails to the temporary address.
+Rate Limiting: Be cautious of potential rate limits. If the service imposes limits, implement a mechanism to handle 429 Too Many Requests responses.
