@@ -25,7 +25,10 @@ Generate Single Random Mailbox With Count One
 
 Generate Multiple Random Mailboxes With Count Five
     ${generated_mailbox}=    Generate Random Mailbox Keyword    5
+    # Should Be String    ${generated_mailbox}
+    ${second_email}=    Get From List     ${generated_mailbox}    2
     Count Values In List    ${generated_mailbox}    5
+    
 Generate Random Mailbox With Invalid String Input
     Run Keyword And Expect Error   ValueError: Count must be a positive integer.    Generate Random Mailbox Keyword    hassineabd
 

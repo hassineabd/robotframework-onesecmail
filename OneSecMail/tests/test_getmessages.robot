@@ -1,10 +1,14 @@
 *** settings ***
 Library    OneSecMail
+Library    Collections
 
 *** test cases ***
 Get Messages With Valid Mailbox
-    ${mailboxes}=    OneSecMail.Get Messages    	4uu0c1@dpptd.com
+    ${mailboxes}=    OneSecMail.Get Emails    	4uu0c1@dpptd.com
     Log    ${mailboxes}
+    ${message}=    Get From List    ${mailboxes}    0
+    Log    ${message}
 
 read 
-    ${message}=    Read Last Message    4uu0c1@dpptd.com
+    ${message}=    OneSecMail.Read Email    4uu0c1@dpptd.com    1103535846
+    Log    message

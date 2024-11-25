@@ -2,7 +2,7 @@
 
 ## Overview
 
-This a `robotframework` library that provides a set of keywords for interacting with the [OneSecMail API](https://onesecmail.com/api-documentation), which allows you to generate temporary email addresses and manage emails received at those addresses.
+This `robotframework` library leverages the [OneSecMail API](https://onesecmail.com/api-documentation) to provide a comprehensive set of keywords for managing temporary email addresses and their associated emails. It enables the creation of disposable email addresses, monitoring of new messages, reading of message content, and more.
 
 ## Installation
 
@@ -22,10 +22,8 @@ Library    OneSecMail
 
 Features
 --------
-- Generate disposable email addresses
-- Check for new messages
-- Read message content
-- Wait for specific emails with filters
-- Context managers for temporary email handling
-- Logging and error handling
-- Support for multiple domains
+- **Temporary Email Generation**: Create disposable email addresses for temporary use.
+- **New Message Notification**: Check for new messages received at temporary email addresses.
+- **Email Content Reading**: Read the content of messages received at temporary email addresses.
+- **Filtered Email Waiting**: Wait for specific emails to arrive based on filters.
+- **Temporary Email Management**: Utilize context managers for efficient handling of temporary email addresses.

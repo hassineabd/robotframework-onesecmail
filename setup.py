@@ -30,11 +30,10 @@ setup(
     # url='https://github.com/hassineabd/robotframework-onesecmail',
     packages=find_packages(exclude=["docs", "tests", ]),
     include_package_data=True,
-    # install_requires=REQUIREMENTS,
-    install_requires=[
-        "robotframework>=4.0.0",
-        # Add other dependencies here
-    ],
+    install_requires=REQUIREMENTS,
+    # install_requires=[
+    #     "robotframework>=4.0.0",
+    # ],
     classifiers=CLASSIFIERS,
     python_requires='>=3.10',
 )

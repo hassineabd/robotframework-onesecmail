@@ -4,7 +4,7 @@ import requests
 from robot.api import logger
 
 
-def request(func):
+def catch_on_request(func):
     def wrapper(*args, **kwargs):
         try:
             response = func(*args, **kwargs)
