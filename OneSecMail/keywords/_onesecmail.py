@@ -1,8 +1,6 @@
-import re
-import requests
+import datetime
 from robot.api import logger
 from robot.api.deco import keyword, not_keyword, library
-from datetime import datetime
 from OneSecMail.utils.helpers import Helpers
 from ._client import _OneSecMailClient
 
@@ -25,54 +23,50 @@ class _OneSecMailKeywords():
         login, domain = Helpers.split_email(email)
         return self._client._read_message(login, domain, email_id)
 
-    # @keyword
-    # def fetch_email_by(self,attribute, email):
-    #     attribute = attribute.lower()
-    #     emails = self.get_emails(email)
-    #     for email in emails :
-    #         email_response = self.read_email(email, email['id'])
+
+    @keyword
+    def fetch_email_by_field(self,field, email):
+        field = field.lower()
+        if field not in ['from','subject', 'body']:
+            raise ValueError(f"Invalid field: {field}. Valid fields are 'from', 'subject' and 'body'.")
+        received_emails = self.get_emails(email)
+
+        for email_summary in received_emails :
+            logger.info(f"Fetching email with ID: {email_summary['id']}")
+            if field == 'body':
+                content = self._fetch_email_body(email_response)   
+            email_response = self.read_email(email, str(email_summary['id']))
+            logger.info(f"Email response: {email_response}")
+            return email_response[field]
+    
+    @keyword
+    def find_email_by_attribute(self, email, attribute, value):
+        attribute = attribute.lower()
+        valid_attributes = ['from', 'subject', 'body']
+        if attribute not in valid_attributes:
+            raise ValueError(f"Invalid attribute: {attribute}. Valid attributes are {valid_attributes}.")
+
+        emails = self.get_emails(email)
+        for email_summary in emails:
+            email_response = self.read_email(email, email_summary['id'])
             
-    #         if attribute not in ['subject', 'body']:
-    #             raise ValueError(f"Invalid attribute: {attribute}. Valid attributes are 'subject' and 'body'.")
-    #         return email_response[attribute]
-    
-    # @keyword
-    # def find_email_by_attribute(self, email, attribute, value):
-    #     attribute = attribute.lower()
-    #     valid_attributes = ['from', 'subject', 'body']
-    #     if attribute not in valid_attributes:
-    #         raise ValueError(f"Invalid attribute: {attribute}. Valid attributes are {valid_attributes}.")
+            if attribute == 'body':
+                content = self._fetch_email_body(email_response)
+            else:
+                content = email_response.get(attribute)
 
-    #     emails = self.get_emails(email)
-    #     for email_summary in emails:
-    #         email_response = self.read_email(email, email_summary['id'])
-            
-    #         if attribute == 'body':
-    #             content = self._fetch_email_body(email_response)
-    #         else:
-    #             content = email_response.get(attribute)
-
-    #         if content and value in content:
-    #             return email_response
-    #     return None
+            if content and value in content:
+                return email_response
+        return None
 
     
-    # #private method
-    # def _fetch_email_body(self, email_response):
-    #     if 'textBody' in email_response and email_response['textBody']:
-    #         return email_response['textBody']
-    #     elif 'htmlBody' in email_response and email_response['htmlBody']:
-    #         return email_response['htmlBody']
-    #     elif 'body' in email_response and email_response['body']:
-    #         return email_response['body']
-    #     else:
-    #         return "No content found in the email body."
-    
-
-    # def filter_dates_after_reference(self, date_list, reference_time):
-    #     reference_datetime = datetime.strptime(reference_time, '%Y-%m-%d %H:%M:%S')
-    #     filtered_dates = [
-    #         date_str for date_str in date_list 
-    #         if datetime.strptime(date_str, '%Y-%m-%d %H:%M:%S') > reference_datetime
-    #     ]
-    #     return filtered_dates
+    #private method
+    def _fetch_email_body(self, email_content):
+        if 'textBody' in email_content and email_content['textBody']:
+            return email_content['textBody']
+        elif 'htmlBody' in email_content and email_content['htmlBody']:
+            return email_content['htmlBody']
+        elif 'body' in email_content and email_content['body']:
+            return email_content['body']
+        else:
+            return "No content found in the email body."
