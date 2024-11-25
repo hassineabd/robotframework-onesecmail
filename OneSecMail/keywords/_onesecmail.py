@@ -22,8 +22,12 @@ class _OneSecMailKeywords():
     def read_email(self, email, email_id):
         login, domain = Helpers.split_email(email)
         return self._client._read_message(login, domain, email_id)
-
-
+    
+    @keyword
+    def download_attachment(self, email, email_id, attachment_id):
+        login, domain = Helpers.split_email(email)
+        return self._client._download_attachment(login, domain, email_id, attachment_id)
+    
     @keyword
     def fetch_email_by_field(self,field, email):
         field = field.lower()
@@ -40,20 +44,20 @@ class _OneSecMailKeywords():
             return email_response[field]
     
     @keyword
-    def find_email_by_attribute(self, email, attribute, value):
-        attribute = attribute.lower()
-        valid_attributes = ['from', 'subject', 'body']
-        if attribute not in valid_attributes:
-            raise ValueError(f"Invalid attribute: {attribute}. Valid attributes are {valid_attributes}.")
+    def find_recieved_email_by_field(self, email, field, value):
+        field = field.lower()   
+        valid_fields = ['from', 'subject', 'body']
+        if field not in valid_fields:
+            raise ValueError(f"Invalid field: {field}. Valid fields are {valid_fields}.")
 
         emails = self.get_emails(email)
         for email_summary in emails:
             email_response = self.read_email(email, email_summary['id'])
-            
-            if attribute == 'body':
+
+            if field == 'body':
                 content = self._fetch_email_body(email_response)
             else:
-                content = email_response.get(attribute)
+                content = email_response[field]
 
             if content and value in content:
                 return email_response

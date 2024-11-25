@@ -13,3 +13,7 @@ read
     ${message}=    OneSecMail.Read Email    4uu0c1@dpptd.com    1103822192
     ${from}=    OneSecMail.Fetch Email By Field    from    4uu0c1@dpptd.com
     Log    ${from}
+
+Test Find Recieved Email By Field
+    ${message}=    OneSecMail.Find Recieved Email By Field   4uu0c1@dpptd.com    subject    gaddour
+    Log    ${message}
