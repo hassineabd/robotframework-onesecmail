@@ -1,28 +1,21 @@
 from robot.api import logger
 
-class _LoggingKeywords:
-    LOG_LEVELS = {
-        'DEBUG': ['DEBUG'],
-        'INFO': ['DEBUG', 'INFO'],
-        'WARN': ['DEBUG', 'INFO', 'WARN']
-    }
-
+class _LoggingKeywords():
     def __init__(self):
         self._log_level = 'INFO'
 
     def _log(self, message, level='INFO'):
         level = level.upper()
-        if level not in self.LOG_LEVELS:
-            return
-        
-        if self._log_level in self.LOG_LEVELS[level]:
-            getattr(logger, level.lower())(message)
+        if level == 'INFO':
+            logger.info(message)
+        elif level == 'DEBUG':
+            logger.debug(message)
+        elif level == 'WARN':
+            logger.warn(message)
 
-    def debug(self, message):
-        self._log(message, 'DEBUG')
-
-    def info(self, message):
-        self._log(message, 'INFO')
-
-    def warn(self, message):
-        self._log(message, 'WARN')
+    def _log_list(self, items, what='item'):
+        msg = f"Found {len(items)} {what}{'s' if len(items) != 1 else ''}"
+        self._log(msg)
+        for index, item in enumerate(items, 1):
+            self._log(f"{index}: {item}")
+        return items
