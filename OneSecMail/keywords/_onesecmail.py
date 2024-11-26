@@ -43,34 +43,41 @@ class _OneSecMailKeywords():
             logger.info(f"Email response: {email_response}")
             return email_response[field]
     
-    @keyword
-    def find_recieved_email_by_field(self, email, field, value):
-        field = field.lower()   
-        valid_fields = ['from', 'subject', 'body']
+    @not_keyword
+    def _validate_field(self, field, valid_fields):
+        """Validate if the given field is valid"""
+        field = field.lower()
         if field not in valid_fields:
             raise ValueError(f"Invalid field: {field}. Valid fields are {valid_fields}.")
+        return field
 
-        emails = self.get_emails(email)
+    @not_keyword
+    def _get_email_content(self, email_response, field):
+        body_fields = ['body', 'htmlbody', 'textbody']
+        if field.lower() in body_fields:
+            return self._fetch_email_body(email_response)
+        return email_response[field]
+
+    @not_keyword
+    def _search_emails(self, emails, email, field, value):
         for email_summary in emails:
             email_response = self.read_email(email, email_summary['id'])
-
-            if field == 'body':
-                content = self._fetch_email_body(email_response)
-            else:
-                content = email_response[field]
-
+            content = self._get_email_content(email_response, field)
             if content and value in content:
                 return email_response
         return None
 
-    
-    #private method
+    @keyword
+    def find_recieved_email_by_field(self, email, field, value):
+        valid_fields = ['from', 'subject', 'attachment', 'body', 'textBody', 'htmlBody']
+        field = self._validate_field(field, valid_fields)
+        emails = self.get_emails(email)
+        return self._search_emails(emails, email, field, value)
+
+    @not_keyword
     def _fetch_email_body(self, email_content):
-        if 'textBody' in email_content and email_content['textBody']:
-            return email_content['textBody']
-        elif 'htmlBody' in email_content and email_content['htmlBody']:
-            return email_content['htmlBody']
-        elif 'body' in email_content and email_content['body']:
-            return email_content['body']
-        else:
-            return "No content found in the email body."
+        body_fields = ['textBody', 'htmlBody', 'body']
+        for field in body_fields:
+            if field in email_content and email_content[field]:
+                return email_content[field]
+        raise ValueError("No content found in the email body.")
