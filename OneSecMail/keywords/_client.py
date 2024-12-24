@@ -12,20 +12,20 @@ class _OneSecMailClient():
         self.base_url = BASE_URL
         self.timeout = TIMEOUT
 
-    @catch_on_request
+    @catch_on_request(is_json=True)
     def _generate_temporary_mailbox(self, count):
         params = {RequestParam.ACTION: Action.GENERATE_RANDOM_MAILBOX,
                     RequestParam.COUNT : count}
         return self.session.get(self.base_url, params=params)
 
-    @catch_on_request
+    @catch_on_request(is_json=True)
     def _get_messages(self, login, domain):
         params = {RequestParam.ACTION: Action.GET_MESSAGES,
                    RequestParam.LOGIN: login,
                    RequestParam.DOMAIN: domain}
         return self.session.get(self.base_url, params=params)
 
-    @catch_on_request
+    @catch_on_request(is_json=True)
     def _read_message(self, login, domain, email_id):
         params = {RequestParam.ACTION: Action.READ_MESSAGE,
                    RequestParam.LOGIN: login,
@@ -33,8 +33,8 @@ class _OneSecMailClient():
                    RequestParam.ID: email_id}
         return self.session.get(self.base_url, params=params)
 
-    @catch_on_request
-    def _download_attachment(self, login, domain, email_id, filename):
+    @catch_on_request(is_json=False)
+    def _fetch_attachment_content(self, login, domain, email_id, filename):
         params = {RequestParam.ACTION: Action.DOWNLOAD_ATTACHMENT,
                    RequestParam.LOGIN: login,
                    RequestParam.DOMAIN: domain,

@@ -1,50 +1,39 @@
-# -*- coding: utf-8 -*-
-
 import os
-import base64
 from robot.libraries.BuiltIn import BuiltIn
 from robot.libraries.BuiltIn import RobotNotRunningError
 from robot.api import logger
 
 class _LoggingKeywords():
-    LOG_LEVEL_DEBUG = ['DEBUG']
-    LOG_LEVEL_INFO = ['DEBUG', 'INFO']
-    LOG_LEVEL_WARN = ['DEBUG', 'INFO', 'WARN']
-
     @property
     def _log_level(self):
         try:
-            level = BuiltIn().get_variable_value("${LOG_LEVEL}", default='DEBUG')
+            return BuiltIn().get_variable_value("${LOG_LEVEL}", default='INFO')
         except RobotNotRunningError:
-            level = 'DEBUG'
-        return level
-
-    def _debug(self, message):
-        if self._log_level in self.LOG_LEVEL_DEBUG:
-            logger.debug(message)
-
-    def _info(self, message):
-        if self._log_level in self.LOG_LEVEL_INFO:
-            logger.info(message)
-
-    def _warn(self, message):
-        if self._log_level in self.LOG_LEVEL_WARN:
-            logger.warn(message)
+            return 'INFO'
 
     def _log(self, message, level='INFO'):
+        """Log messages with specified level (INFO by default)"""
         level = level.upper()
-        if (level == 'INFO'):
-            self._info(message)
-        elif (level == 'DEBUG'):
-            self._debug(message)
-        elif (level == 'WARN'):
-            self._warn(message)
-        elif (level == 'HTML'):
-            self._html(message)
+        if level == 'INFO':
+            logger.info(message)
+        elif level == 'DEBUG':
+            logger.debug(message)
+        elif level == 'WARN':
+            logger.warn(message)
+        elif level == 'ERROR':
+            logger.error(message)
 
     def _log_list(self, items, what='item'):
-        msg = ['Altogether %d %s%s.' % (len(items), what, ['s', ''][len(items) == 1])]
+        """Log a list of items with a summary count"""
+        msg = [f'Found {len(items)} {what}{"s" if len(items) != 1 else ""}.']
         for index, item in enumerate(items):
-            msg.append('%d: %s' % (index+1, item))
-        self._info('\n'.join(msg))
+            msg.append(f'{index + 1}: {item}')
+        self._log('\n'.join(msg))
         return items
+    
+    def _get_log_dir(self):
+        variables = BuiltIn().get_variables()
+        logfile = variables['${LOG FILE}']
+        if logfile != 'NONE':
+            return os.path.dirname(logfile)
+        return variables['${OUTPUTDIR}']

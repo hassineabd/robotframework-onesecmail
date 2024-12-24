@@ -17,17 +17,8 @@ class Helpers:
     def split_email(email):
         if Helpers.validate_email_format(email):
             return email.split('@')
-
-    @staticmethod    
-    def get_email_by_index(self, messages, index=0):
-        if 0 <= index < len(messages):
-            return messages[index]
-        else:
-            raise IndexError("Index out of range for messages list.")
     
     @staticmethod
-    def get_value_from_email(self, message, key):
-        """
-            Keys are : id, from, subject, date, body
-        """
-        return message.get(key, None)
+    def save_file(content, filename):
+        with open(filename, 'wb') as file:
+            file.write(content)
