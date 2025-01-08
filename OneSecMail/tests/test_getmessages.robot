@@ -4,12 +4,11 @@ Library    Collections
 
 *** test cases ***
 Get Messages With Valid Mailbox
-    OneSecMail.Register Email    4uu0c1@dpptd.com
-    ${mailboxes}=    Get Emails Summary
+    ${mailboxes}=    OneSecMail.Get Emails Summary    	4uu0c1@dpptd.com
     Log    ${mailboxes}
-    ${email_id}=    Get Email Id Matching Field    subject    test 5
+    ${email_id}=    OneSecMail.Get Email Id Matching Field    4uu0c1@dpptd.com    subject    test 5
     Log    ${email_id}
-    ${message}=    OneSecMail.Read Email    ${email_id}
+    ${message}=    OneSecMail.Read Email    4uu0c1@dpptd.com    ${email_id}
     Log    ${message}
     # ${attachment}=    Download Attachment    4uu0c1@dpptd.com    ${email_id}    sd.py
     # Log    ${attachment}
