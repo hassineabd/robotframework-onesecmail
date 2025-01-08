@@ -1,6 +1,9 @@
+import os
 import re
+from ..keywords._logging import _LoggingKeywords
 
 class Helpers:
+
     @staticmethod
     def validate_email_format(email):
         pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
@@ -20,5 +23,7 @@ class Helpers:
     
     @staticmethod
     def save_file(content, filename):
-        with open(filename, 'wb') as file:
+        logdir= _LoggingKeywords._get_log_dir()
+        filepath= os.path.join(logdir, filename)
+        with open(filepath, 'wb') as file:
             file.write(content)

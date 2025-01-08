@@ -11,8 +11,8 @@ class _LoggingKeywords():
         except RobotNotRunningError:
             return 'INFO'
 
-    def _log(self, message, level='INFO'):
-        """Log messages with specified level (INFO by default)"""
+    def _log(self, message, level='info'):
+        """Log messages with specified level (info by default)"""
         level = level.upper()
         if level == 'INFO':
             logger.info(message)
@@ -31,7 +31,8 @@ class _LoggingKeywords():
         self._log('\n'.join(msg))
         return items
     
-    def _get_log_dir(self):
+    @staticmethod
+    def _get_log_dir():
         variables = BuiltIn().get_variables()
         logfile = variables['${LOG FILE}']
         if logfile != 'NONE':
